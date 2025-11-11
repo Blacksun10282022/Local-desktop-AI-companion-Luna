@@ -1,0 +1,17 @@
+# === Core XTTS HTTP server ===
+TTS==0.22.0
+fastapi>=0.115
+uvicorn>=0.30
+
+# Numerics / audio I/O
+numpy>=1.24
+soundfile>=0.12
+librosa>=0.10
+
+# Models / API helpers
+pydantic>=2.5,<3
+requests>=2.31
+
+# === Japanese tokenizer for XTTS JA (fixes ModuleNotFoundError: cutlet) ===
+cutlet>=0.4
+unidic-lite>=1.0.8
