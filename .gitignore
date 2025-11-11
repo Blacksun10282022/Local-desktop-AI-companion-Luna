@@ -1,0 +1,70 @@
+
+---
+
+# 🧾 .gitignore（与你现有规则一致，略微补充）
+你前面那份已经很好了，这里是**最终版**（如已覆盖，可保持不变）：
+
+```gitignore
+# ===== Secrets =====
+.env
+*.env
+backend/.env
+!backend/.env.sample
+frontend/node_modules/
+backend/tools/probe/*.wav
+
+# ===== User config =====
+config.json
+frontend/config.js
+
+# ===== Portable data (keep structure, ignore content) =====
+LunaData/*
+!LunaData/.gitkeep
+!LunaData/audio/.gitkeep
+!LunaData/diary/.gitkeep
+!LunaData/logs/.gitkeep
+
+# ===== Models =====
+LunaModels/**
+models_config.json
+backend/audio/
+backend/state.json
+backend/settings.json
+
+# ===== Logs / caches =====
+*.log
+logs/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ===== Node / build =====
+node_modules/
+dist/
+build/
+frontend/.cache/
+dist_electron/
+
+# ===== IDE / OS =====
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ===== Packaging outputs =====
+Luna_Portable/
+Luna_Full_v0.6.1/
+*.zip
+*.spec
+
+# ===== Local launchers =====
+Start.bat
+
+# ===== Temp & envs =====
+LunaData/**/tmp/
+LunaData/**/cache/
+*.bak
+.venv/
+env/
+.packenv/
+.pack_xtts_gpu/
