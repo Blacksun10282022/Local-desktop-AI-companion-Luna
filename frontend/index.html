@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' file:;
+               img-src 'self' data: blob: file:;
+               media-src 'self' blob: http: https: file:;
+               style-src 'self' 'unsafe-inline' file:;
+               script-src 'self' file:;
+               connect-src 'self' http: https:;
+               font-src 'self' data: file:;">
+  <title>Luna</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="root" class="drag-window">
+    <div id="dot" class="no-drag" title="Tap me"></div>
+    <div id="gear" class="no-drag" title="Settings">⚙</div>
+    <div id="bubble" class="no-drag"></div>
+
+    <div id="panel" class="no-drag" hidden>
+      <label><input id="privacyMode" type="checkbox"> 隐私模式(后端日志不显示文本)</label>
+      <label><input type="checkbox" id="autoTuneChk"> 自动调节命中率</label>
+      <label><input type="checkbox" id="muteChk"> 静音模式</label>
+      <label><input id="hideBubble" type="checkbox"> 隐藏文字气泡(仅 UI)</label>
+
+      <label>预合成命中概率 <input id="prob" type="number" step="0.1" min="0" max="1" value="0.6" /></label>
+      <label>音色覆盖(手动) <input id="voice" type="text" placeholder="留空=默认音色" /></label>
+
+      <label>选择说话人(XTTS)
+        <select id="speakerSel"><option value="">(不选)</option></select>
+      </label>
+
+      <hr />
+      <div style="opacity:.8;font-size:12px;margin:4px 0 6px;">TTS 路由(v0.5)</div>
+      <label> TTS 模式
+        <select id="ttsMode">
+          <option value="auto" selected>自动(本地优先,失败回落云端)</option>
+          <option value="local">仅本地</option>
+          <option value="cloud">仅云端</option>
+        </select>
+      </label>
+
+      <label>本地 TTS 设备
+        <select id="localDeviceSel">
+          <option value="auto">自动(测速择优)</option>
+          <option value="gpu">GPU (端口 9882)</option>
+          <option value="cpu">CPU (端口 9883)</option>
+        </select>
+      </label>
+
+      <label>本地 TTS 地址 <input id="ttsLocalUrl" type="text" placeholder="http://127.0.0.1:9882" /></label>
+      <label>本地 TTS 超时(ms)<input id="ttsTimeout" type="number" min="1000" step="500" value="8000" /></label>
+
+      <hr />
+      <div style="opacity:.8;font-size:12px;margin:4px 0 6px;">LLM 来源(v0.6)</div>
+      <label> LLM 来源
+        <select id="llmSource">
+          <option value="cloud">云端 Qwen</option>
+          <option value="local_small">本地 · 1.5B（9970）</option>
+          <option value="local_big">本地 · 7B（9971）</option>
+          <option value="local_auto">本地 · Auto（1.5B↔7B）</option>
+        </select>
+      </label>
+
+      <hr />
+      <!-- ✅ 新增：窗口大小预设 -->
+      <label>窗口大小预设
+        <select id="sizePreset">
+          <option value="small">小号（不打扰）</option>
+          <option value="medium" selected>中号（默认）</option>
+          <option value="large">大号（沉浸）</option>
+        </select>
+      </label>
+
+      <hr />
+      <label><input id="diaryChk" type="checkbox"> 启用日记</label>
+      <label><input id="monoChk"  type="checkbox"> 启用独白</label>
+      <label>运行模式
+        <select id="runMode">
+          <option value="energy">节能</option>
+          <option value="standard" selected>标准</option>
+          <option value="immersive">沉浸</option>
+        </select>
+      </label>
+      <label>日记保留天数 <input id="maxDays" type="number" min="7" value="60"></label>
+
+      <button id="saveBtn">保存设置</button>
+    </div>
+  </div>
+
+  <script src="./renderer.js"></script>
+</body>
+</html>

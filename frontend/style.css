@@ -1,0 +1,229 @@
+/* ======= 窗口拖拽区域 / 交互禁拖 ======= */
+.drag-window {
+  -webkit-app-region: drag;
+  position: fixed;          /* 铺满窗口，避免依赖父元素高度 */
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+}
+.no-drag { -webkit-app-region: no-drag; }
+
+/* ======= 全局 ======= */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: transparent;      /* 透明可能在某些显卡黑屏，先给轻微底色 */
+  /* background: rgba(0,0,0,0.02);*/
+  font-family: 'Orbitron', 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  user-select: none;
+  overflow: hidden;
+}
+/* 允许内容在更小窗口里换行/折叠，别强行抬高最小宽度 */
+#root, .drag-window, #panel { min-width: 0; min-height: 0; }
+
+/* ======= 尺寸预设变量 ======= */
+:root{
+  /* 默认：中号 */
+  --orb-size: clamp(220px, 60vmin, 500px);  /* 中号：大约 ~ 窗口边长的 34% */
+  --gear-size: 32px;
+  --panel-font: 13px;
+  --panel-maxw: 360px;
+  --bubble-maxw: 380px;
+}
+
+/* 小号：窗口是 220×220（你要的“原中号当小号”），球也比之前更大些 */
+body[data-size="small"]{
+  --orb-size: clamp(140px, 70vmin, 200px);  /* 220×220 时 ≈ 154px；再小也不低于 140 */
+  --gear-size: 24px;
+  --panel-font: 12px;
+  --panel-maxw: 320px;
+  --bubble-maxw: 320px;
+}
+
+/* 大号：半屏正方形窗口，球明显增大（≈窗口边长的一半左右） */
+body[data-size="large"]{
+  --orb-size: clamp(280px, 80vmin, 1200px); /* ½屏(1080p)边长≈1018px → 球≈509px */
+  --gear-size: 36px;
+  --panel-font: 14px;
+  --panel-maxw: 420px;
+  --bubble-maxw: 420px;
+}
+
+
+/* ======= 昼夜主题变量 ======= */
+:root {
+  --primary: #00f3ff;
+  --secondary: #0077ff;
+  --accent: #7b2cbf;
+  --glow: rgba(0, 243, 255, 0.6);
+  --shadow: rgba(0, 119, 255, 0.4);
+  --bg-orb: radial-gradient(circle at 30% 30%, #00f3ff, #0077ff 40%, #1a1a2e 80%);
+  --particle-color: #00f3ff;
+  --bubble-bg: rgba(10, 10, 30, 0.9);
+  --bubble-border: rgba(0, 243, 255, 0.5);
+}
+body.night-mode {
+  --primary: #ff006e;
+  --secondary: #8338ec;
+  --accent: #fb5607;
+  --glow: rgba(255, 0, 110, 0.7);
+  --shadow: rgba(131, 56, 236, 0.5);
+  --bg-orb: radial-gradient(circle at 30% 30%, #ff006e, #8338ec 40%, #0a0a0f 80%);
+  --particle-color: #ff006e;
+  --bubble-bg: rgba(20, 0, 30, 0.9);
+  --bubble-border: rgba(255, 0, 110, 0.5);
+}
+
+/* 常用过渡 */
+#dot, #gear { transition: transform .8s cubic-bezier(0.4,0,0.2,1), box-shadow .8s, filter .8s; }
+#panel, #bubble { transition: opacity .4s, transform .4s, box-shadow .4s, background .4s, border-color .4s; }
+
+/* ======= 核心圆球 ======= */
+#dot{
+  position:absolute;
+  right:16px;
+  bottom:16px;
+  width: var(--orb-size);
+  height: var(--orb-size);
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--bg-orb);
+  box-shadow:
+    0 0 30px var(--glow),
+    0 0 60px var(--shadow),
+    inset 0 0 20px rgba(255,255,255,0.1);
+  animation: float 4s ease-in-out infinite;
+  z-index: 10;
+  will-change: transform, filter, box-shadow;
+}
+#dot:hover {
+  transform: scale(1.1) translateY(-5px);
+  box-shadow: 0 0 50px var(--glow), 0 0 100px var(--shadow), inset 0 0 30px rgba(255,255,255,0.2);
+}
+#dot:active { transform: scale(0.95); }
+
+/* 外层能量环 */
+#dot::before{
+  content:'';
+  position:absolute; inset:-15px;
+  border-radius:50%;
+  background: conic-gradient(from 0deg,
+    transparent 0%,
+    var(--primary) 25%,
+    transparent 50%,
+    var(--secondary) 75%,
+    transparent 100%);
+  opacity:.4;
+  animation: rotate 3s linear infinite;
+  filter: blur(10px);
+  z-index:1;
+}
+
+/* 粒子层 */
+#dot::after{
+  content:'';
+  position:absolute; inset:-8px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 20% 20%, var(--particle-color) 2px, transparent 2px),
+    radial-gradient(circle at 80% 30%, var(--particle-color) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 50% 80%, var(--particle-color) 2px, transparent 2px),
+    radial-gradient(circle at 70% 70%, var(--particle-color) 1px, transparent 1px);
+  background-size:100% 100%;
+  animation: sparkle 2s ease-in-out infinite;
+  opacity:.8;
+  z-index:2;
+}
+
+/* 在线/缓存分支动画 */
+#dot.pulse{
+  animation: pulse-expand 1s cubic-bezier(0.4,0,0.2,1) forwards, float 4s ease-in-out infinite 1s !important;
+  box-shadow: 0 0 80px var(--glow), 0 0 150px var(--shadow), inset 0 0 40px rgba(255,255,255,.3) !important;
+}
+#dot.pulse::before { animation: rotate .8s linear infinite, pulse-ring 1s ease-out forwards !important; opacity:.8 !important; filter: blur(5px) !important; }
+.lightning { position:absolute; inset:-30px; border-radius:50%; background: linear-gradient(45deg,transparent 40%,var(--primary) 50%,transparent 60%), linear-gradient(-45deg,transparent 40%,var(--secondary) 50%,transparent 60%); opacity:0; animation: lightning-flash .6s ease-out; pointer-events:none; z-index:6; }
+#dot.breathe { animation: breathe-soft 1.5s ease-in-out forwards, float 4s ease-in-out infinite 1.5s !important; }
+#dot.breathe::before { animation: rotate 3s linear infinite, breathe-ring 1.5s ease-in-out forwards !important; opacity:.6 !important; filter: blur(15px) !important; }
+
+/* ======= 气泡 ======= */
+#bubble{
+  position:absolute;
+  right: calc(16px + var(--orb-size) + 14px);
+  bottom: calc(16px + (var(--orb-size) * .25));
+  max-width: var(--bubble-maxw);
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: calc(var(--panel-font) * 1.05);
+  line-height: 1.6;
+  font-weight: 500;
+  color:#fff;
+  background: var(--bubble-bg);
+  backdrop-filter: blur(12px) saturate(1.5);
+  border: 1px solid var(--bubble-border);
+  box-shadow: 0 8px 32px rgba(0,0,0,.6), 0 0 20px var(--glow), inset 0 1px 1px rgba(255,255,255,.1);
+  opacity:0; transform: translateX(20px) scale(.9);
+  pointer-events:none; z-index:20;
+  will-change: transform, filter, opacity;
+}
+#bubble.show{ opacity:1; transform: translateX(0) scale(1); pointer-events:auto; }
+#bubble.glitch{ animation: glitch-anim .3s cubic-bezier(.25,.46,.45,.94) 2; }
+
+/* ======= 齿轮 ======= */
+#gear{
+  position:absolute; right:12px; top:12px;
+  width: var(--gear-size);
+  height: var(--gear-size);
+  font-size: calc(var(--gear-size) * .62);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--primary); opacity:.7;
+  text-shadow: 0 0 10px var(--glow);
+  z-index:30;
+}
+#gear:hover{ opacity:1; transform: rotate(90deg) scale(1.15); text-shadow: 0 0 20px var(--glow); transition: all .3s; }
+
+/* ======= 设置面板 ======= */
+#panel{
+  position:fixed; right:12px; top: 50px;
+  z-index:40;
+  background: var(--bubble-bg);
+  backdrop-filter: blur(10px);
+  color:#fff;
+  padding:16px;
+  border-radius:12px;
+  font-size: var(--panel-font);
+  line-height:1.8;
+  border:1px solid var(--bubble-border);
+  box-shadow: 0 8px 32px rgba(0,0,0,.8), 0 0 20px var(--glow);
+  max-width: min(var(--panel-maxw), calc(100vw - 24px));
+  max-height: calc(100vh - 80px);
+  overflow:auto;
+}
+#panel.flip{ left:12px; right:auto; }
+#panel.bottom{ top:auto; bottom:12px; }
+
+/* 面板表单：不再“挤作一团” */
+#panel label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:6px 0;
+  flex-wrap:wrap;
+}
+#panel input[type="text"],
+#panel input[type="number"],
+#panel select{
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+/* ======= 动画 ======= */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes rotate{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes sparkle{0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes pulse-expand{0%{transform:scale(1)}50%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes pulse-ring{0%{transform:scale(1) rotate(0deg); opacity:.8}100%{transform:scale(1.8) rotate(180deg); opacity:0}}
+@keyframes lightning-flash{0%,100%{opacity:0}50%{opacity:.8}}
+@keyframes breathe-soft{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes breathe-ring{0%{transform:scale(1); opacity:.6}100%{transform:scale(1.4); opacity:0}}
+@keyframes glitch-anim{0%{transform:translate(0)}20%{transform:translate(-2px,2px)}40%{transform:translate(-2px,-2px)}60%{transform:translate(2px,2px)}80%{transform:translate(2px,-2px)}100%{transform:translate(0)}}
