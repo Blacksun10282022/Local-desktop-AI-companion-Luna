@@ -1,4 +1,12 @@
-# Luna v0.6.1 — 一键本地桌面 AI 伴生体（Windows，Anaconda 路线）
+# Luna — Local Desktop AI Assistant
+
+**Project period:** Nov 2025-Dec 2025
+
+An Electron + FastAPI desktop assistant with llama.cpp-served Qwen2 models,
+dual-model routing, local/cloud fallback, repeatable startup orchestration,
+health checks, configuration validation and portable user-data isolation.
+
+## 中文运行指南（v0.6.1，Windows / Anaconda）
 
 > Electron（前端） + FastAPI（后端） + Qwen（LLM 云/本地） + XTTS v2（本地 TTS，GPU/CPU）  
 > **隐私与便携**：所有真实数据只写入 `./LunaData/*`（仓库不包含任何个人隐私数据或真实密钥）  
@@ -13,7 +21,7 @@
 - [Node.js LTS](https://nodejs.org/)（用于 Electron 前端开发/运行）
 - NVIDIA 显卡驱动（可选；用于 XTTS GPU）
 
-> 项目根路径示例：`C:\Users\32707\Desktop\Luna_pre\Lunav0.6.1`
+> 项目根路径可以放在任意本地工作目录；以下脚本均以仓库根目录为基准。
 
 ### 1）创建环境（一次性）
 双击项目根的 **`0_Setup_Conda.bat`**  
@@ -84,7 +92,9 @@
 
 ---
 
-# English Guide — Luna v0.6.1 (Anaconda only)
+# English Run Guide — Luna v0.6.1 (Anaconda only)
+
+**Project period:** Nov 2025-Dec 2025
 
 > Stack: **Electron** (frontend) + **FastAPI** (backend) + **Qwen** (LLM cloud/local) + **XTTS v2** (local TTS, GPU/CPU)  
 > **Privacy & Portability:** all real data stays under `./LunaData/*`. No real keys or private data in the repo.  
